@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOHD ISMAIL HUB</title>
+    
+    <!-- Yeh links Google se behtar hain, block nahi hote -->
+    <!-- Firebase Core -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
+<!-- Firebase Database -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        body { background: #0a111f; color: #00f2fe; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; }
+        header { padding: 40px; background: rgba(255,255,255,0.03); border-bottom: 1px solid #00f2fe; }
+        h1 { margin: 0; font-size: 28px; letter-spacing: 2px; text-shadow: 0 0 15px #00f2fe; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 90%; max-width: 450px; margin: 30px auto; }
+        .card { background: #16213e; border: 2px solid #1f3a5f; border-radius: 20px; padding: 25px; cursor: pointer; transition: 0.3s; font-weight: bold; color: #94a3b8; }
+        .active { border-color: #00f2fe; color: #fff; background: rgba(0,242,254,0.1); box-shadow: 0 0 20px #00f2fe; transform: scale(1.05); }
+        #status { font-size: 12px; margin-top: 10px; color: #4facfe; text-transform: uppercase; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>MOHD ISMAIL HUB</h1>
+    <div id="status">CONNECTING TO CLOUD...</div>
+</header>
+
+<div class="grid" id="ui-grid"></div>
+
+<script>
+    // Aapki Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyD2rkLfvZ1WSxZLh9N9bK0DRuunpln852k",
+        databaseURL: "https://home-automation-5f3a3-default-rtdb.firebaseio.com"
+    };
+
+    const names = ["Master Light", "Ceiling Fan", "Table Lamp", "Main Bulb", "AC Unit", "Smart TV", "CCTV Cam", "Main Gate"];
+    let currentState = 0;
+
+    // UI Buttons Draw Karein
+    const grid = document.getElementById('ui-grid');
+    names.forEach((name, i) => {
+        grid.innerHTML += `<div class="card" id="d${i}" onclick="toggleDevice(${i})">${name}</div>`;
+    });
+
+    // Firebase Initialization
+    window.onload = function() {
+        if (typeof firebase !== 'undefined') {
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.database().ref('/switchState');
+
+            window.toggleDevice = function(bit) {
+                currentState ^= (1 << bit);
+                db.set(currentState).catch(err => alert("Error: " + err.message));
+            }
+
+            db.on('value', (snap) => {
+                currentState = snap.val() || 0;
+                document.getElementById('status').innerText = "● SYSTEM ONLINE (CLOUD)";
+                document.getElementById('status').style.color = "#00FF00";
+                for(let i=0; i<8; i++) {
+                    const card = document.getElementById(`d${i}`);
+                    if (currentState & (1 << i)) card.classList.add('active');
+                    else card.classList.remove('active');
+                }
+            });
+        } else {
+            document.getElementById('status').innerText = "ERROR: LIBRARY STILL BLOCKED";
+            document.getElementById('status').style.color = "red";
+        }
+    };
+</script>
+</body>
+</html>
