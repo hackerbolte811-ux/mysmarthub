@@ -4,6 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ISMAIL SMART HUB</title>
+        <input type="email" id="email" placeholder="Email">
+<input type="password" id="pass" placeholder="Password">
+<button onclick="login()">Login</button>
+
+<script>
+function login(){
+
+firebase.auth().signInWithEmailAndPassword(
+document.getElementById("email").value,
+document.getElementById("pass").value
+)
+.then(()=>{
+alert("Login Success");
+})
+.catch(e=>{
+alert(e.message);
+});
+
+}
+</script>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
