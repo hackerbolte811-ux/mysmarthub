@@ -1,78 +1,219 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MOHD ISMAIL HUB</title>
-    
-    <!-- Yeh links Google se behtar hain, block nahi hote -->
-    <!-- Firebase Core -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISMAIL SMART HUB</title>
 
-<!-- Firebase Database -->
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-    <style>
-        body { background: #0a111f; color: #00f2fe; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; }
-        header { padding: 40px; background: rgba(255,255,255,0.03); border-bottom: 1px solid #00f2fe; }
-        h1 { margin: 0; font-size: 28px; letter-spacing: 2px; text-shadow: 0 0 15px #00f2fe; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 90%; max-width: 450px; margin: 30px auto; }
-        .card { background: #16213e; border: 2px solid #1f3a5f; border-radius: 20px; padding: 25px; cursor: pointer; transition: 0.3s; font-weight: bold; color: #94a3b8; }
-        .active { border-color: #00f2fe; color: #fff; background: rgba(0,242,254,0.1); box-shadow: 0 0 20px #00f2fe; transform: scale(1.05); }
-        #status { font-size: 12px; margin-top: 10px; color: #4facfe; text-transform: uppercase; font-weight: bold; }
-    </style>
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Poppins, sans-serif;
+}
+
+body{
+background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+min-height:100vh;
+color:white;
+text-align:center;
+}
+
+/* Header */
+header{
+padding:25px;
+background: rgba(255,255,255,0.05);
+backdrop-filter: blur(10px);
+border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+header h1{
+font-size:28px;
+letter-spacing:2px;
+background: linear-gradient(90deg,#00f2fe,#4facfe);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+#status{
+margin-top:8px;
+font-size:13px;
+color:#00ff88;
+}
+
+/* Grid */
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+gap:20px;
+padding:25px;
+max-width:500px;
+margin:auto;
+}
+
+/* Card */
+.card{
+background: rgba(255,255,255,0.08);
+border-radius:20px;
+padding:20px;
+backdrop-filter: blur(12px);
+transition:0.3s;
+border:1px solid rgba(255,255,255,0.1);
+cursor:pointer;
+}
+
+.card:hover{
+transform: translateY(-5px) scale(1.03);
+box-shadow:0 0 20px rgba(0,255,255,0.3);
+}
+
+.card.active{
+background: linear-gradient(135deg,#00f2fe,#4facfe);
+color:black;
+font-weight:bold;
+box-shadow:0 0 25px #00f2fe;
+}
+
+.icon{
+font-size:28px;
+margin-bottom:8px;
+}
+
+/* Toggle switch */
+.switch{
+margin-top:10px;
+width:45px;
+height:22px;
+background:#555;
+border-radius:20px;
+margin-left:auto;
+margin-right:auto;
+position:relative;
+transition:0.3s;
+}
+
+.switch::after{
+content:"";
+width:18px;
+height:18px;
+background:white;
+border-radius:50%;
+position:absolute;
+top:2px;
+left:3px;
+transition:0.3s;
+}
+
+.card.active .switch{
+background:#00ffcc;
+}
+
+.card.active .switch::after{
+left:24px;
+}
+
+footer{
+margin-top:20px;
+font-size:12px;
+opacity:0.7;
+}
+
+</style>
 </head>
+
 <body>
 
 <header>
-    <h1>MOHD ISMAIL HUB</h1>
-    <div id="status">CONNECTING TO CLOUD...</div>
+<h1>ISMAIL SMART HUB</h1>
+<div id="status">Connecting to Cloud...</div>
 </header>
 
-<div class="grid" id="ui-grid"></div>
+<div class="grid" id="grid"></div>
+
+<footer>
+Secure Cloud Automation • Premium UI
+</footer>
 
 <script>
-    // Aapki Firebase Config
-    const firebaseConfig = {
+
+// Firebase config
+const firebaseConfig = {
         apiKey: "AIzaSyD2rkLfvZ1WSxZLh9N9bK0DRuunpln852k",
         databaseURL: "https://home-automation-5f3a3-default-rtdb.firebaseio.com"
-    };
+};
 
-    const names = ["Master Light", "Ceiling Fan", "Table Lamp", "Main Bulb", "AC Unit", "Smart TV", "CCTV Cam", "Main Gate"];
-    let currentState = 0;
+firebase.initializeApp(firebaseConfig);
 
-    // UI Buttons Draw Karein
-    const grid = document.getElementById('ui-grid');
-    names.forEach((name, i) => {
-        grid.innerHTML += `<div class="card" id="d${i}" onclick="toggleDevice(${i})">${name}</div>`;
-    });
+const db = firebase.database().ref("switchState");
 
-    // Firebase Initialization
-    window.onload = function() {
-        if (typeof firebase !== 'undefined') {
-            firebase.initializeApp(firebaseConfig);
-            const db = firebase.database().ref('/switchState');
+// Device names + icons
+const devices = [
+{name:"Master Light", icon:"💡"},
+{name:"Ceiling Fan", icon:"🌀"},
+{name:"Table Lamp", icon:"🔆"},
+{name:"Main Bulb", icon:"🏠"},
+{name:"AC Unit", icon:"❄️"},
+{name:"Smart TV", icon:"📺"},
+{name:"CCTV Cam", icon:"📷"},
+{name:"Main Gate", icon:"🚪"}
+];
 
-            window.toggleDevice = function(bit) {
-                currentState ^= (1 << bit);
-                db.set(currentState).catch(err => alert("Error: " + err.message));
-            }
+let state = 0;
 
-            db.on('value', (snap) => {
-                currentState = snap.val() || 0;
-                document.getElementById('status').innerText = "● SYSTEM ONLINE (CLOUD)";
-                document.getElementById('status').style.color = "#00FF00";
-                for(let i=0; i<8; i++) {
-                    const card = document.getElementById(`d${i}`);
-                    if (currentState & (1 << i)) card.classList.add('active');
-                    else card.classList.remove('active');
-                }
-            });
-        } else {
-            document.getElementById('status').innerText = "ERROR: LIBRARY STILL BLOCKED";
-            document.getElementById('status').style.color = "red";
-        }
-    };
+const grid = document.getElementById("grid");
+
+// Create cards
+devices.forEach((device,i)=>{
+
+grid.innerHTML += `
+<div class="card" id="d${i}" onclick="toggle(${i})">
+<div class="icon">${device.icon}</div>
+<div>${device.name}</div>
+<div class="switch"></div>
+</div>
+`;
+
+});
+
+// Toggle function
+function toggle(bit){
+
+state ^= (1<<bit);
+
+db.set(state);
+
+}
+
+// Listen firebase
+db.on("value", snap=>{
+
+state = snap.val() || 0;
+
+document.getElementById("status").innerHTML="● SYSTEM ONLINE";
+
+for(let i=0;i<devices.length;i++){
+
+let card=document.getElementById("d"+i);
+
+if(state & (1<<i))
+card.classList.add("active");
+else
+card.classList.remove("active");
+
+}
+
+});
+
 </script>
+
 </body>
 </html>
